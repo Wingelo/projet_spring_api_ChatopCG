@@ -2,12 +2,11 @@ package com.openclassroom.projet_spring_api_chatopcg.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import java.util.List;
 
 @Entity
-@Table(name= "users")
+@Table(name = "users")
 @Data
 public class User {
 

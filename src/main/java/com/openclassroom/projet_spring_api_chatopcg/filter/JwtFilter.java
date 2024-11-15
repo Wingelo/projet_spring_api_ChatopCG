@@ -2,7 +2,6 @@ package com.openclassroom.projet_spring_api_chatopcg.filter;
 
 import com.openclassroom.projet_spring_api_chatopcg.configuration.JwtUtils;
 import com.openclassroom.projet_spring_api_chatopcg.service.CustomUserDetailsService;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -35,24 +33,24 @@ public class JwtFilter extends OncePerRequestFilter {
         String jwt = null;
 
 
-        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
-            try{
+            try {
                 username = jwtUtils.extractUsername(jwt);
-            } catch(MalformedJwtException e) {
+            } catch (MalformedJwtException e) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Malformed JWT token");
                 return; // Arrête le filtre si le JWT est invalide
-            } catch(Exception e) {
+            } catch (Exception e) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error extracting JWT");
                 return;
             }
 
         }
 
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
-            if(jwtUtils.validateToken(jwt, userDetails)) {
+            if (jwtUtils.validateToken(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
