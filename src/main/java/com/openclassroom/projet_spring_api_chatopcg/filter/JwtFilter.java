@@ -27,6 +27,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+
         final String authorizationHeader = request.getHeader("Authorization");
 
         String username = null;
@@ -39,14 +41,13 @@ public class JwtFilter extends OncePerRequestFilter {
                 username = jwtUtils.extractUsername(jwt);
             } catch (MalformedJwtException e) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Malformed JWT token");
-                return; // Arrête le filtre si le JWT est invalide
+                return;
             } catch (Exception e) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error extracting JWT");
                 return;
             }
 
         }
-
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
