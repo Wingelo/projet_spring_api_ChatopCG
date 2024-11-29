@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "rentals")
 @Data
@@ -17,20 +19,13 @@ public class Rentals {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "name")
     private String name;
-
-    @Column(name = "surface")
     private double surface;
-
-    @Column(name = "price")
     private double price;
-
-    @Column(name = "picture")
     private String picture;
-
-    @Column(name = "description")
     private String description;
+    private LocalDateTime created_at;
+    private LocalDateTime updated_at;
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)

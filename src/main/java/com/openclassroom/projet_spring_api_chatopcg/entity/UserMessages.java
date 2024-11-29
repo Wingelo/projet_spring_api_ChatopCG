@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @Entity
@@ -14,8 +16,9 @@ public class UserMessages {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "message")
     private String message;
+    private LocalDateTime created_at;
+    private LocalDateTime updated_at;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -24,4 +27,6 @@ public class UserMessages {
     @ManyToOne
     @JoinColumn(name = "rental_id", nullable = false)
     private Rentals rental;
+
+
 }
