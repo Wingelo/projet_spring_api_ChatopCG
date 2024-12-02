@@ -54,7 +54,7 @@ public class AuthController {
                     content = @Content(
                             schema = @Schema(implementation = User.class),
                             examples = @ExampleObject(
-                                    value = "{ \"email\": \"test@test11.com\", \"name\": \"test TEST\", \"password\": \"test!31\" }"
+                                    value = "{ \"email\": \"test@test5.com\", \"name\": \"test TEST\", \"password\": \"test!31\" }"
                             )
                     )
             )
@@ -115,7 +115,7 @@ public class AuthController {
             summary = "Récuperer les informations de l'utilisateur connecté"
     )
     @GetMapping("/me")
-    public ResponseEntity<?> getUserInfo(HttpServletRequest request) {
+    public ResponseEntity<?> getUserInfo() {
 
         String email = jwtUtils.getAuthenticatedUsername();
         User user = userRepository.findByEmail(email);
