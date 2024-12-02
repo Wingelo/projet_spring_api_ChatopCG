@@ -1,6 +1,5 @@
 package com.openclassroom.projet_spring_api_chatopcg.repository;
 
-import com.openclassroom.projet_spring_api_chatopcg.dto.RentalsDTO;
 import com.openclassroom.projet_spring_api_chatopcg.entity.Rentals;
 import com.openclassroom.projet_spring_api_chatopcg.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
