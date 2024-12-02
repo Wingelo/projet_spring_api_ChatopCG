@@ -25,7 +25,7 @@
 CREATE DATABASE nom_de_la_base;
 ```
 ## 2 Configuration du Projet Java avec Maven et MySQL
-Ce guide explique comment configurer et exécuter le projet Java.
+Ce guide explique comment installer le projet
 ### 2.1 Commandes Maven pour exécuter le projet
 
 1. **Compiler et construire le projet :**
