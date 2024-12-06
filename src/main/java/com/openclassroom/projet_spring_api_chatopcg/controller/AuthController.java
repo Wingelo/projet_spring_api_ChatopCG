@@ -5,11 +5,10 @@ import com.openclassroom.projet_spring_api_chatopcg.configuration.JwtUtils;
 import com.openclassroom.projet_spring_api_chatopcg.dto.RentalsDTO;
 import com.openclassroom.projet_spring_api_chatopcg.dto.UserMessagesDTO;
 import com.openclassroom.projet_spring_api_chatopcg.entity.User;
-import com.openclassroom.projet_spring_api_chatopcg.repository.RentalsRepository;
-import com.openclassroom.projet_spring_api_chatopcg.repository.UserMessagesRepository;
-import com.openclassroom.projet_spring_api_chatopcg.repository.UserRepository;
+import com.openclassroom.projet_spring_api_chatopcg.service.AuthService;
 import com.openclassroom.projet_spring_api_chatopcg.service.RentalsService;
 import com.openclassroom.projet_spring_api_chatopcg.service.UserMessagesService;
+import com.openclassroom.projet_spring_api_chatopcg.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -18,15 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,17 +30,11 @@ import java.util.Map;
 @Slf4j
 public class AuthController {
 
-    private final UserRepository userRepository;
-    private final RentalsRepository rentalsRepository;
-    private final UserMessagesRepository userMessagesRepository;
-
     private final RentalsService rentalsService;
     private final UserMessagesService userMessagesService;
-
-    private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
+    private final UserService userService;
     private final JwtUtils jwtUtils;
-    private final AuthenticationManager authenticationManager;
-
 
     @Operation(
             summary = "Enregistrer un nouvel utilisateur",
@@ -65,22 +52,12 @@ public class AuthController {
     )
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
-
-        if (userRepository.findByEmail(user.getEmail()) != null) {
-            return ResponseEntity.badRequest().body("Email Already Exists");
+        try {
+            Map<String, Object> authData = authService.register(user);
+            return ResponseEntity.ok(authData);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        user.setRole(user.getRole() != null ? user.getRole() : "ROLE_USER");
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setCreated_at(LocalDateTime.now());
-        user.setUpdated_at(LocalDateTime.now());
-
-        userRepository.save(user);
-
-        Map<String, Object> authData = new HashMap<>();
-        authData.put("token", jwtUtils.generateToken(user.getEmail()));
-        authData.put("type", "Bearer");
-
-        return ResponseEntity.ok(authData);
     }
 
 
@@ -101,17 +78,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
         try {
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
-            if (authentication.isAuthenticated()) {
-                Map<String, Object> authData = new HashMap<>();
-                authData.put("token", jwtUtils.generateToken(user.getEmail()));
-                authData.put("type", "Bearer");
-                return ResponseEntity.ok(authData);
-            }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+            Map<String, Object> authData = authService.login(user.getEmail(), user.getPassword());
+            return ResponseEntity.ok(authData);
         } catch (AuthenticationException e) {
             log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -122,23 +93,20 @@ public class AuthController {
     public ResponseEntity<?> getUserInfo() {
 
         String email = jwtUtils.getAuthenticatedUsername();
-        User user = userRepository.findByEmail(email);
+        User user = userService.findUserByEmail(email);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
         }
+
+        List<RentalsDTO> rentals = rentalsService.findRentalsByUser(user);
+        List<UserMessagesDTO> messages = userMessagesService.getMessagesByUser(user);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("id", user.getId());
         response.put("name", user.getName());
         response.put("email", user.getEmail());
-
-
-        List<RentalsDTO> rentals = rentalsService.findRentalsByUser(user);
         response.put("rentals", rentals);
-
-        List<UserMessagesDTO> messages = userMessagesService.getMessagesByUser(user);
         response.put("messages", messages);
-
 
         return ResponseEntity.ok(response);
     }
