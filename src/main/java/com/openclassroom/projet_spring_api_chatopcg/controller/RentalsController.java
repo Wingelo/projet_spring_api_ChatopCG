@@ -9,6 +9,7 @@ import com.openclassroom.projet_spring_api_chatopcg.repository.UserRepository;
 import com.openclassroom.projet_spring_api_chatopcg.response.MessageResponse;
 import com.openclassroom.projet_spring_api_chatopcg.response.RentalsResponse;
 import com.openclassroom.projet_spring_api_chatopcg.service.FileStorageService;
+import com.openclassroom.projet_spring_api_chatopcg.service.RentalsService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -29,6 +30,7 @@ public class RentalsController {
     private final FileStorageService fileStorageServiceRepository;
     private final JwtUtils jwtUtils;
     private final RentalsRepository rentalsRepository;
+    private final RentalsService rentalsService;
     private final UserRepository userRepository;
 
     @Operation(
@@ -85,23 +87,7 @@ public class RentalsController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
-
-        Rentals rental = new Rentals();
-        rental.setName(name);
-        rental.setSurface(surface);
-        rental.setPrice(price);
-        rental.setDescription(description);
-        rental.setCreated_at(LocalDateTime.now());
-        rental.setUpdated_at(LocalDateTime.now());
-
-        if (!picture.isEmpty()) {
-            String savedImagePath = fileStorageServiceRepository.save(picture);
-            String imageUrl = "http://localhost:3001/uploads/" + savedImagePath;
-            rental.setPicture(imageUrl);
-        }
-        rental.setUser(user);
-
-        rentalsRepository.save(rental);
+        rentalsService.addRental(name, surface, price, description, picture, user);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Rental created !"));
     }
@@ -119,31 +105,13 @@ public class RentalsController {
             @RequestParam("description") String description) {
 
         User user = userRepository.findByEmail(jwtUtils.getAuthenticatedUsername());
-
-        Rentals existingRental = rentalsRepository.findById(id);
-        if (existingRental == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Rentals not found");
+        try {
+            rentalsService.updateRental(id, name, surface, price, description, user);
+            return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Rental updated !"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new MessageResponse(e.getMessage()));
         }
-        if (existingRental.getUser().getId() == user.getId()) {
-            if (existingRental.getName().equals(name)) {
-                existingRental.setName(name);
-            }
-            if (existingRental.getSurface() > 0) {
-                existingRental.setSurface(surface);
-            }
-            if (existingRental.getPrice() > 0) {
-                existingRental.setPrice(price);
-            }
-            if (existingRental.getDescription() != null) {
-                existingRental.setDescription(description);
-            }
-            existingRental.setUpdated_at(LocalDateTime.now());
-            rentalsRepository.save(existingRental);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("You do not have the right to modify it");
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Rental updated !"));
-
     }
+
 
 }

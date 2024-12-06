@@ -2,13 +2,12 @@ package com.openclassroom.projet_spring_api_chatopcg.controller;
 
 import com.openclassroom.projet_spring_api_chatopcg.configuration.JwtUtils;
 import com.openclassroom.projet_spring_api_chatopcg.dto.UserMessagesDTO;
-import com.openclassroom.projet_spring_api_chatopcg.entity.Rentals;
 import com.openclassroom.projet_spring_api_chatopcg.entity.User;
-import com.openclassroom.projet_spring_api_chatopcg.entity.UserMessages;
 import com.openclassroom.projet_spring_api_chatopcg.repository.RentalsRepository;
 import com.openclassroom.projet_spring_api_chatopcg.repository.UserMessagesRepository;
 import com.openclassroom.projet_spring_api_chatopcg.repository.UserRepository;
 import com.openclassroom.projet_spring_api_chatopcg.response.MessageResponse;
+import com.openclassroom.projet_spring_api_chatopcg.service.UserMessagesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -30,9 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserMessagesController {
 
     private final JwtUtils jwtUtils;
-    private final UserMessagesRepository userMessagesRepository;
-    private final RentalsRepository rentalsRepository;
-    private final UserRepository userRepository;
+    private final UserMessagesService userMessagesService;
 
     @Operation(
             summary = "Permet de faire un message sur la location concerné",
@@ -52,23 +49,8 @@ public class UserMessagesController {
     public ResponseEntity<?> addMessages(
             @RequestBody UserMessagesDTO userMessagesDTO
     ) {
-        User user = userRepository.findByEmail(jwtUtils.getAuthenticatedUsername());
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("We could not find your profile, please try again");
-        }
-
-        Rentals rental = rentalsRepository.findById(userMessagesDTO.getRentalId());
-        if (rental == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("The rental does not exist");
-        }
-
-        UserMessages userMessages = new UserMessages();
-        userMessages.setUser(user);
-        userMessages.setRental(rental);
-        userMessages.setMessage(userMessagesDTO.getMessage());
-        userMessagesRepository.save(userMessages);
-
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Message send with success"));
+        String authenticatedEmail = jwtUtils.getAuthenticatedUsername();
+        MessageResponse response = userMessagesService.addMessage(userMessagesDTO, authenticatedEmail);
+        return ResponseEntity.status(201).body(response);
     }
 }
