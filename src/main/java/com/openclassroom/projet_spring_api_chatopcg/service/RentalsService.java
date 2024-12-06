@@ -82,4 +82,11 @@ public class RentalsService {
                 .map(RentalsDTO::fromEntityGet)
                 .collect(Collectors.toList());
     }
+
+    public List<RentalsDTO> getAllRentals() {
+        List<Rentals> rentalsList = rentalsRepository.findAll();
+        return rentalsList.stream()
+                .map(RentalsDTO::fromEntityGet)
+                .collect(Collectors.toList());
+    }
 }

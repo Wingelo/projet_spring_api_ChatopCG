@@ -39,16 +39,11 @@ public class RentalsController {
     )
     @GetMapping("/rentals")
     public ResponseEntity<?> getAllRentalsInfos() {
-        List<Rentals> listRentals = rentalsRepository.findAll();
-        if (listRentals.isEmpty()) {
+        List<RentalsDTO> rentalsDTOS = rentalsService.getAllRentals();
+        if (rentalsDTOS.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Rentals not found");
         }
-        List<RentalsDTO> rentalsDTOS = listRentals.stream()
-                .map(RentalsDTO::fromEntityGet)
-                .toList();
-
         RentalsResponse response = new RentalsResponse(rentalsDTOS);
-
         return ResponseEntity.ok(response);
 
     }
