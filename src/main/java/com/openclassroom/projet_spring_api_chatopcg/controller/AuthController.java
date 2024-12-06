@@ -8,6 +8,8 @@ import com.openclassroom.projet_spring_api_chatopcg.entity.User;
 import com.openclassroom.projet_spring_api_chatopcg.repository.RentalsRepository;
 import com.openclassroom.projet_spring_api_chatopcg.repository.UserMessagesRepository;
 import com.openclassroom.projet_spring_api_chatopcg.repository.UserRepository;
+import com.openclassroom.projet_spring_api_chatopcg.service.RentalsService;
+import com.openclassroom.projet_spring_api_chatopcg.service.UserMessagesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -38,6 +40,9 @@ public class AuthController {
     private final UserRepository userRepository;
     private final RentalsRepository rentalsRepository;
     private final UserMessagesRepository userMessagesRepository;
+
+    private final RentalsService rentalsService;
+    private final UserMessagesService userMessagesService;
 
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
@@ -128,17 +133,10 @@ public class AuthController {
         response.put("email", user.getEmail());
 
 
-        List<RentalsDTO> rentals = rentalsRepository.findByUser(user)
-                .stream()
-                .map(RentalsDTO::fromEntityGet)
-                .toList();
+        List<RentalsDTO> rentals = rentalsService.findRentalsByUser(user);
         response.put("rentals", rentals);
 
-        List<UserMessagesDTO> messages = userMessagesRepository
-                .findByUser(user)
-                .stream()
-                .map(UserMessagesDTO::fromEntity)
-                .toList();
+        List<UserMessagesDTO> messages = userMessagesService.getMessagesByUser(user);
         response.put("messages", messages);
 
 

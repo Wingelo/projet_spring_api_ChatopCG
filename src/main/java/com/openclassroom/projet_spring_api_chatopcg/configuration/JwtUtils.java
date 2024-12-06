@@ -50,7 +50,6 @@ public class JwtUtils {
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         String username = extractUsername(token);
-        log.error(userDetails.getUsername());
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
@@ -88,7 +87,6 @@ public class JwtUtils {
     public String getAuthenticatedUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof UserDetails userDetails) {
-            log.error(userDetails.getUsername());
             return userDetails.getUsername();
         }
         return null;

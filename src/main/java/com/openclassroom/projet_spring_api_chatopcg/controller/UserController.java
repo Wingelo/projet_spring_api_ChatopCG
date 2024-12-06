@@ -27,7 +27,7 @@ public class UserController {
 
 
     @Operation(
-            summary = "Récupere un utilisateur",
+            summary = "Récuperer un utilisateur",
             description = "Permet de récupérer un seul utilisateur, exemple : user/1"
 
     )
